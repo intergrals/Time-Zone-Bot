@@ -79,5 +79,15 @@ module.exports = {
         "MMMM Do, YYYY | hh:mmA"
       )} ${args[3]}`
     );
+  },
+
+  listZones: function(msg) {
+    var zonelst = "";
+    for (var key in zones) {
+      if (zonelst) zonelst += ", ";
+      zonelst += key;
+    }
+
+    msg.channel.send("Supported timezones: " + zonelst);
   }
 };

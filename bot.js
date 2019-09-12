@@ -16,6 +16,9 @@ client.on("message", msg => {
       case "convert":
         tt.convert(msg, args);
         break;
+      case "zones":
+        tt.listZones(msg);
+        break;
     }
   }
 });
