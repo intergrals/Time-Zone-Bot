@@ -1,0 +1,23 @@
+{
+  "name": "timezonebot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeoHLPan/Time-Zone-Bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LeoHLPan/Time-Zone-Bot/issues"
+  },
+  "homepage": "https://github.com/LeoHLPan/Time-Zone-Bot#readme",
+  "dependencies": {
+    "discord.js": "^11.5.1"
+  }
+}
