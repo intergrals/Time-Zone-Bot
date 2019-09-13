@@ -3,11 +3,25 @@ require("moment-timezone");
 const Discord = require("discord.js");
 const zones = require("./zones.json");
 var fs = require("fs");
+var uZones = JSON.parse(fs.readFileSync("./user-zones.json"));
 
-convertErr = msg => {
-  msg.channel.send(
-    "Usage: **!convert {time} {zone} {new zone} [±day]**. \nFor a list of supported time zones, enter **!zones**."
-  );
+convertErr = (msg, cmd) => {
+  usage = "Usage: ";
+  switch (cmd) {
+    case "convert":
+      usage +=
+        "**!convert {time} {zone} {new zone} [±day]**. \nFor a list of supported time zones, enter **!zones**.";
+      break;
+    case "from":
+      usage +=
+        "**!from {zone} {time}**. \nFor a list of supported time zones, enter **!zones**.";
+      break;
+    case "to":
+      usage +=
+        "**!to {zone} {time}**. \nFor a list of supported time zones, enter **!zones**.";
+      break;
+  }
+  msg.channel.send(usage);
 };
 
 module.exports = {
@@ -15,14 +29,13 @@ module.exports = {
   convert: function(msg, args) {
     // wrong arguments
     if (args.length < 4) {
-      console.log("a");
-      convertErr(msg);
+      convertErr(msg, args[0]);
       return;
     }
 
     // ensure time given is valid
     if (!/^\d{1,2}:\d{2}(am|pm)$/i.test(args[1])) {
-      convertErr(msg);
+      convertErr(msg, args[0]);
       return;
     }
 
@@ -33,7 +46,7 @@ module.exports = {
 
     // if time zones don't exist (or aren't supported)
     if (!zones.hasOwnProperty(args[2]) || !zones.hasOwnProperty(args[3])) {
-      convertErr(msg);
+      convertErr(msg, args[0]);
       return;
     }
 
@@ -47,7 +60,7 @@ module.exports = {
     else if (!isPM && hour === 12) hour = 0;
 
     if (hour > 24 || minute >= 60 || (hour >= 24 && minute > 0)) {
-      convertErr(msg);
+      convertErr(msg), args[0];
       return;
     }
 
@@ -61,7 +74,7 @@ module.exports = {
         addDay = 0;
       } else {
         if (!/^[-+]?\d+$/.test(args[4])) {
-          convertErr(msg);
+          convertErr(msg, args[0]);
           return;
         }
         addDay = parseInt(args[4]);
@@ -82,15 +95,40 @@ module.exports = {
     );
   },
 
+  // convert from given time zone to user's default
+  convertFrom: function(msg, args) {
+    // check for proper input
+    if (args.length !== 3) {
+      convertErr(msg, args[0]);
+      return;
+    }
+
+    // create args to send to convert
+    newArgs = ["from", args[2], args[1], uZones[msg.author.tag]];
+
+    this.convert(msg, newArgs);
+  },
+
   // sets a user's default time zone
   setZone: function(msg, args) {
+    // no argument case: return user's time zone
+    if (args.length === 1) {
+      if (uZones.hasOwnProperty(msg.author.tag)) {
+        msg.reply(`your default time zone is ${uZones[msg.author.tag]}.`);
+      } else {
+        msg.reply("you have not set a default time zone.");
+      }
+      return;
+    }
+    // error case: return error message
     if (args.length !== 2) {
-      msg.channel.send("USAGE: **!default {zone}**");
+      msg.channel.send("Usage: **!default {zone}**");
       return;
     }
 
     args[1] = args[1].toUpperCase();
 
+    // no time zone case: display message.
     if (!zones.hasOwnProperty(args[1])) {
       msg.channel.send(
         `Time zone \"${
@@ -101,20 +139,12 @@ module.exports = {
     }
 
     // set user's default zones
-    try {
-      const jsonString = fs.readFileSync("./user-zones.json");
-      var uZones = JSON.parse(jsonString);
+    uZones[msg.author.tag] = args[1];
 
-      uZones[msg.author.tag] = args[1];
-
-      fs.writeFile("./user-zones.json", JSON.stringify(uZones), err => {
-        if (err) console.log(err);
-        else msg.reply(`your time zone has been set to ${args[1]}.`);
-      });
-    } catch (err) {
-      console.log(err);
-      return;
-    }
+    fs.writeFile("./user-zones.json", JSON.stringify(uZones), err => {
+      if (err) console.log(err);
+      else msg.reply(`your time zone has been set to ${args[1]}.`);
+    });
   },
 
   // lists the supported time zones
