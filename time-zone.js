@@ -97,39 +97,68 @@ module.exports = {
 
   // convert from given time zone to user's default
   convertFrom: function(msg, args) {
-    // check for proper input
-    if (args.length !== 3) {
-      convertErr(msg, args[0]);
-      return;
-    }
-
+    // error case: user has not set default time zone
     if (!uZones.hasOwnProperty(msg.author.tag)) {
       msg.reply("you have not set a default time zone.");
+      return;
+    }
+    // convert current time is one isn't specified
+    if (args.length === 2) {
+      var time = moment().tz(zones[args[1].toUpperCase()].region);
+      newArgs = [
+        args[0],
+        time.format("hh:mmA"),
+        args[1],
+        uZones[msg.author.tag]
+      ];
+      this.convert(msg, newArgs);
+      return;
+    }
+    // check for proper input
+    if (args.length < 3 || args.length > 4) {
+      convertErr(msg, args[0]);
       return;
     }
 
     // create args to send to convert
     newArgs = [args[0], args[2], args[1], uZones[msg.author.tag]];
-
+    if (args.length === 4) {
+      newArgs.push(args[3]);
+    }
     this.convert(msg, newArgs);
   },
 
   // convert from user's default time zone to zone given
   convertTo: function(msg, args) {
-    // check for proper input
-    if (args.length !== 3) {
-      convertErr(msg, args[0]);
-      return;
-    }
-
+    // error case: user has not set default time zone
     if (!uZones.hasOwnProperty(msg.author.tag)) {
       msg.reply("you have not set a default time zone.");
       return;
     }
 
+    // convert current time is one isn't specified
+    if (args.length === 2) {
+      var time = moment().tz(zones[uZones[msg.author.tag]].region);
+      newArgs = [
+        args[0],
+        time.format("hh:mmA"),
+        uZones[msg.author.tag],
+        args[1]
+      ];
+      this.convert(msg, newArgs);
+      return;
+    }
+    // check for proper input
+    if (args.length < 3 || args.length > 4) {
+      convertErr(msg, args[0]);
+      return;
+    }
+
     // create args to send to convert
     newArgs = [args[0], args[2], uZones[msg.author.tag], args[1]];
-
+    if (args.length === 4) {
+      newArgs.push(args[3]);
+    }
     this.convert(msg, newArgs);
   },
 
