@@ -12,10 +12,21 @@ help = msg => {
     "Available commands:\n\
   **!zones**\n\
   - lists all supported time zones\n\
-  **!convert {time} {zone} {new zone} [yesterday/tomorrow/±day]**\n\
+  **!myzone [zone]**\n\
+  - sets your preferred time zone\n\
+  **!time [user/zone]**\n\
+  - displays the current time in the specified user's preferred time zone\n\
+  - can also input time zone directly to display time in given time zone\n\
+  **!from {zone} [time [±day]]**\n\
+  - converts a time from zone to your preferred time zone\n\
+  **!to {zone} [time [±day]]**\n\
+  - converts a time from your preferred time zone to zone\n\
+  **!convert {time} {zone} {new zone} [±day]**\n\
   - converts a time from zone to new zone\n\
   - uses date of first time zone provided\n\
-  - date can be incremented by specifying a number"
+  - date can be incremented by specifying a number\n\
+  **!gbftime**\n\
+  - displays the current time in Granblue Fantasy"
   );
 };
 
@@ -45,6 +56,9 @@ client.on("message", msg => {
         break;
       case "time":
         tt.displayTime(msg, args, client);
+        break;
+      case "gbftime":
+        tt.printTime(msg, "JST");
         break;
     }
   }
