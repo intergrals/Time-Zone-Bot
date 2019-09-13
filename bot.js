@@ -34,6 +34,9 @@ client.on("message", msg => {
       case "zones":
         tt.listZones(msg);
         break;
+      case "myzone":
+        tt.setZone(msg, args);
+        break;
     }
   }
 });

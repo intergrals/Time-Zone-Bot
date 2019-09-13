@@ -2,10 +2,11 @@ const moment = require("moment");
 require("moment-timezone");
 const Discord = require("discord.js");
 const zones = require("./zones.json");
+var fs = require("fs");
 
 convertErr = msg => {
   msg.channel.send(
-    "Usage: **!convert {time} {zone} {new zone} [±day]**. \nFor a list of available time zones, enter **!zones**."
+    "Usage: **!convert {time} {zone} {new zone} [±day]**. \nFor a list of supported time zones, enter **!zones**."
   );
 };
 
@@ -81,6 +82,42 @@ module.exports = {
     );
   },
 
+  // sets a user's default time zone
+  setZone: function(msg, args) {
+    if (args.length !== 2) {
+      msg.channel.send("USAGE: **!default {zone}**");
+      return;
+    }
+
+    args[1] = args[1].toUpperCase();
+
+    if (!zones.hasOwnProperty(args[1])) {
+      msg.channel.send(
+        `Time zone \"${
+          args[1]
+        }\" not supported. \nFor a list of supported time zones, enter **!zones**.`
+      );
+      return;
+    }
+
+    // set user's default zones
+    try {
+      const jsonString = fs.readFileSync("./user-zones.json");
+      var uZones = JSON.parse(jsonString);
+
+      uZones[msg.author.tag] = args[1];
+
+      fs.writeFile("./user-zones.json", JSON.stringify(uZones), err => {
+        if (err) console.log(err);
+        else msg.reply(`your time zone has been set to ${args[1]}.`);
+      });
+    } catch (err) {
+      console.log(err);
+      return;
+    }
+  },
+
+  // lists the supported time zones
   listZones: function(msg) {
     var zonelst = "";
     for (var key in zones) {
