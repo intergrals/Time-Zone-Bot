@@ -40,6 +40,9 @@ client.on("message", msg => {
       case "from":
         tt.convertFrom(msg, args);
         break;
+      case "to":
+        tt.convertTo(msg, args);
+        break;
     }
   }
 });

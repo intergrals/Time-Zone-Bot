@@ -109,7 +109,26 @@ module.exports = {
     }
 
     // create args to send to convert
-    newArgs = ["from", args[2], args[1], uZones[msg.author.tag]];
+    newArgs = [args[0], args[2], args[1], uZones[msg.author.tag]];
+
+    this.convert(msg, newArgs);
+  },
+
+  // convert from user's default time zone to zone given
+  convertTo: function(msg, args) {
+    // check for proper input
+    if (args.length !== 3) {
+      convertErr(msg, args[0]);
+      return;
+    }
+
+    if (!uZones.hasOwnProperty(msg.author.tag)) {
+      msg.reply("you have not set a default time zone.");
+      return;
+    }
+
+    // create args to send to convert
+    newArgs = [args[0], args[2], uZones[msg.author.tag], args[1]];
 
     this.convert(msg, newArgs);
   },
@@ -119,7 +138,12 @@ module.exports = {
     // no argument case: return user's time zone
     if (args.length === 1) {
       if (uZones.hasOwnProperty(msg.author.tag)) {
-        msg.reply(`your default time zone is ${uZones[msg.author.tag]}.`);
+        var time = moment().tz(zones[uZones[msg.author.tag]].region);
+        msg.reply(
+          `your default time zone is ${
+            uZones[msg.author.tag]
+          }. \nIt is currently ${time.format("hh:mmA")}.`
+        );
       } else {
         msg.reply("you have not set a default time zone.");
       }
