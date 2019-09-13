@@ -20,7 +20,7 @@ printErr = (msg, cmd) => {
         "**!to {zone} {time}**. \nFor a list of supported time zones, enter **!zones**.";
       break;
     case "time":
-      usage += "**!time [user].**";
+      usage += "**!time [user/zone].**";
       break;
   }
   msg.channel.send(usage);
@@ -221,12 +221,18 @@ module.exports = {
       }
       var time = moment().tz(zones[userZone].region);
 
-      msg.channel.send(`${time.format("hh:mmA")} ${userZone}`);
+      msg.channel.send(`${time.format("MMMM Do YYYY | hh:mmA")} ${userZone}`);
     } else {
       // two argument case: display another user's time
       var at = msg.mentions;
-      if (!at) {
-        msg.channel.send("No user mentioned.");
+
+      if (at.users.size === 0) {
+        if (args.length !== 2) {
+          printErr(msg, arg[0]);
+        } else {
+          this.printTime(msg, args[1]);
+        }
+        return;
       }
       if (at.everyone) {
         msg.channel.send("No.");
@@ -240,10 +246,28 @@ module.exports = {
       } else {
         var time = moment().tz(zones[uZones[user.tag]].region);
         msg.channel.send(
-          `It is currently ${time.format("hh:mmA")} for ${user}.`
+          `${time.format("MMMM Do YYYY | hh:mmA")} ${uZones[user.tag]}.`
         );
       }
     }
+  },
+
+  printTime: function(msg, zone) {
+    zone = zone.toUpperCase();
+    args = msg.content.split(" ");
+    if (!zones.hasOwnProperty(zone)) {
+      if (args[1][0] === "@") {
+        msg.channel.send(`${args[1]} is not a user in this server.`);
+        return;
+      }
+      msg.channel.send(
+        `"${zone}" is not a supported time zone. \nFor a list of supported time zones, enter **!zones**.`
+      );
+      return;
+    }
+
+    var time = moment().tz(zones[zone].region);
+    msg.channel.send(`${time.format("MMMM Do YYYY | hh:mmA z")}`);
   },
 
   // lists the supported time zones
