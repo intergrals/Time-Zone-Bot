@@ -103,6 +103,11 @@ module.exports = {
       return;
     }
 
+    if (!uZones.hasOwnProperty(msg.author.tag)) {
+      msg.reply("you have not set a default time zone.");
+      return;
+    }
+
     // create args to send to convert
     newArgs = ["from", args[2], args[1], uZones[msg.author.tag]];
 
