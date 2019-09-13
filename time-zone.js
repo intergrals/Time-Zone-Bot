@@ -1,11 +1,10 @@
 const moment = require("moment");
 require("moment-timezone");
-const Discord = require("discord.js");
 const zones = require("./zones.json");
 var fs = require("fs");
 var uZones = JSON.parse(fs.readFileSync("./user-zones.json"));
 
-convertErr = (msg, cmd) => {
+printErr = (msg, cmd) => {
   usage = "Usage: ";
   switch (cmd) {
     case "convert":
@@ -20,6 +19,9 @@ convertErr = (msg, cmd) => {
       usage +=
         "**!to {zone} {time}**. \nFor a list of supported time zones, enter **!zones**.";
       break;
+    case "time":
+      usage += "**!time [user].**";
+      break;
   }
   msg.channel.send(usage);
 };
@@ -29,13 +31,13 @@ module.exports = {
   convert: function(msg, args) {
     // wrong arguments
     if (args.length < 4) {
-      convertErr(msg, args[0]);
+      printErr(msg, args[0]);
       return;
     }
 
     // ensure time given is valid
     if (!/^\d{1,2}:\d{2}(am|pm)$/i.test(args[1])) {
-      convertErr(msg, args[0]);
+      printErr(msg, args[0]);
       return;
     }
 
@@ -46,7 +48,7 @@ module.exports = {
 
     // if time zones don't exist (or aren't supported)
     if (!zones.hasOwnProperty(args[2]) || !zones.hasOwnProperty(args[3])) {
-      convertErr(msg, args[0]);
+      printErr(msg, args[0]);
       return;
     }
 
@@ -60,7 +62,7 @@ module.exports = {
     else if (!isPM && hour === 12) hour = 0;
 
     if (hour > 24 || minute >= 60 || (hour >= 24 && minute > 0)) {
-      convertErr(msg), args[0];
+      printErr(msg), args[0];
       return;
     }
 
@@ -74,7 +76,7 @@ module.exports = {
         addDay = 0;
       } else {
         if (!/^[-+]?\d+$/.test(args[4])) {
-          convertErr(msg, args[0]);
+          printErr(msg, args[0]);
           return;
         }
         addDay = parseInt(args[4]);
@@ -116,7 +118,7 @@ module.exports = {
     }
     // check for proper input
     if (args.length < 3 || args.length > 4) {
-      convertErr(msg, args[0]);
+      printErr(msg, args[0]);
       return;
     }
 
@@ -150,7 +152,7 @@ module.exports = {
     }
     // check for proper input
     if (args.length < 3 || args.length > 4) {
-      convertErr(msg, args[0]);
+      printErr(msg, args[0]);
       return;
     }
 
@@ -203,6 +205,45 @@ module.exports = {
       if (err) console.log(err);
       else msg.reply(`your time zone has been set to ${args[1]}.`);
     });
+  },
+
+  // displays current time for self or another user
+  displayTime: function(msg, args, client) {
+    if (args.length > 2) {
+      // error case: invalid argument count
+      printErr(msg, args[0]);
+      return;
+    } else if (args.length === 1) {
+      // one argument case: display own time
+      var userZone = uZones[msg.author.tag] || null;
+      if (!userZone) {
+        msg.reply("you have not set a default time zone.");
+      }
+      var time = moment().tz(zones[userZone].region);
+
+      msg.channel.send(`${time.format("hh:mmA")} ${userZone}`);
+    } else {
+      // two argument case: display another user's time
+      var at = msg.mentions;
+      if (!at) {
+        msg.channel.send("No user mentioned.");
+      }
+      if (at.everyone) {
+        msg.channel.send("No.");
+      }
+      var user = at.users.first();
+
+      if (user.id === client.user.id) {
+        msg.channel.send("I am timeless!");
+      } else if (!uZones[user.tag]) {
+        msg.channel.send(`${user.tag} has not set a default time zone.`);
+      } else {
+        var time = moment().tz(zones[uZones[user.tag]].region);
+        msg.channel.send(
+          `It is currently ${time.format("hh:mmA")} for ${user}.`
+        );
+      }
+    }
   },
 
   // lists the supported time zones

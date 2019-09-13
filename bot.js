@@ -43,6 +43,9 @@ client.on("message", msg => {
       case "to":
         tt.convertTo(msg, args);
         break;
+      case "time":
+        tt.displayTime(msg, args, client);
+        break;
     }
   }
 });
