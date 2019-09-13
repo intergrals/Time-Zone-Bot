@@ -69,10 +69,10 @@ module.exports = {
 
     var date = moment()
       .add(addDay, "days")
-      .tz(zones[args[2]]);
+      .tz(zones[args[2]].region);
     date.set({ hour: hour, minute: minute });
 
-    var date2 = date.clone().tz(zones[args[3]]);
+    var date2 = date.clone().tz(zones[args[3]].region);
 
     msg.channel.send(
       `${date.format("MMMM Do, YYYY | hh:mmA")} ${args[2]} = \n${date2.format(
