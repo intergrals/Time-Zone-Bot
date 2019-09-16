@@ -91,8 +91,8 @@ module.exports = {
     var date2 = date.clone().tz(zones[args[3]].region);
 
     msg.channel.send(
-      `${date.format("MMMM Do, YYYY | hh:mmA")} ${args[2]} = \n${date2.format(
-        "MMMM Do, YYYY | hh:mmA"
+      `${date.format("MMM Do | hh:mmA")} ${args[2]} = \n${date2.format(
+        "MMM Do | hh:mmA"
       )} ${args[3]}`
     );
   },
@@ -228,7 +228,7 @@ module.exports = {
       }
       var time = moment().tz(zones[userZone].region);
 
-      msg.channel.send(`${time.format("MMMM Do YYYY | hh:mmA")} ${userZone}`);
+      msg.channel.send(`${time.format("MMM Do | hh:mmA")} ${userZone}`);
     } else {
       // two argument case: display another user's time
       var at = msg.mentions;
@@ -253,7 +253,7 @@ module.exports = {
       } else {
         var time = moment().tz(zones[uZones[user.tag]].region);
         msg.channel.send(
-          `${time.format("MMMM Do YYYY | hh:mmA")} ${uZones[user.tag]}.`
+          `${time.format("MMM Do | hh:mmA")} ${uZones[user.tag]}.`
         );
       }
     }
@@ -274,7 +274,7 @@ module.exports = {
     }
 
     var time = moment().tz(zones[zone].region);
-    msg.channel.send(`${time.format("MMMM Do YYYY | hh:mmA z")}`);
+    msg.channel.send(`${time.format("MMM Do | hh:mmA z")}`);
   },
 
   // lists the supported time zones
