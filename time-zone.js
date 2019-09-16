@@ -100,7 +100,7 @@ module.exports = {
   // convert from given time zone to user's default
   convertFrom: function(msg, args) {
     // error case: user has not set default time zone
-    if (!uZones.hasOwnProperty(msg.author.tag)) {
+    if (!uZones.hasOwnProperty(msg.author.id)) {
       msg.reply("you have not set a default time zone.");
       return;
     }
@@ -111,7 +111,7 @@ module.exports = {
         args[0],
         time.format("hh:mmA"),
         args[1],
-        uZones[msg.author.tag]
+        uZones[msg.author.id]
       ];
       this.convert(msg, newArgs);
       return;
@@ -123,7 +123,7 @@ module.exports = {
     }
 
     // create args to send to convert
-    newArgs = [args[0], args[2], args[1], uZones[msg.author.tag]];
+    newArgs = [args[0], args[2], args[1], uZones[msg.author.id]];
     if (args.length === 4) {
       newArgs.push(args[3]);
     }
@@ -133,18 +133,18 @@ module.exports = {
   // convert from user's default time zone to zone given
   convertTo: function(msg, args) {
     // error case: user has not set default time zone
-    if (!uZones.hasOwnProperty(msg.author.tag)) {
+    if (!uZones.hasOwnProperty(msg.author.id)) {
       msg.reply("you have not set a default time zone.");
       return;
     }
 
     // convert current time is one isn't specified
     if (args.length === 2) {
-      var time = moment().tz(zones[uZones[msg.author.tag]].region);
+      var time = moment().tz(zones[uZones[msg.author.id]].region);
       newArgs = [
         args[0],
         time.format("hh:mmA"),
-        uZones[msg.author.tag],
+        uZones[msg.author.id],
         args[1]
       ];
       this.convert(msg, newArgs);
@@ -157,7 +157,7 @@ module.exports = {
     }
 
     // create args to send to convert
-    newArgs = [args[0], args[2], uZones[msg.author.tag], args[1]];
+    newArgs = [args[0], args[2], uZones[msg.author.id], args[1]];
     if (args.length === 4) {
       newArgs.push(args[3]);
     }
@@ -168,11 +168,11 @@ module.exports = {
   setZone: function(msg, args) {
     // no argument case: return user's time zone
     if (args.length === 1) {
-      if (uZones.hasOwnProperty(msg.author.tag)) {
-        var time = moment().tz(zones[uZones[msg.author.tag]].region);
+      if (uZones.hasOwnProperty(msg.author.id)) {
+        var time = moment().tz(zones[uZones[msg.author.id]].region);
         msg.reply(
           `your default time zone is ${
-            uZones[msg.author.tag]
+            uZones[msg.author.id]
           }. \nIt is currently ${time.format("hh:mmA")}.`
         );
       } else {
@@ -199,11 +199,18 @@ module.exports = {
     }
 
     // set user's default zones
-    uZones[msg.author.tag] = args[1];
+    uZones[msg.author.id] = args[1];
 
     fs.writeFile("./user-zones.json", JSON.stringify(uZones), err => {
-      if (err) console.log(err);
-      else msg.reply(`your time zone has been set to ${args[1]}.`);
+      if (err) {
+        console.log(err);
+      } else {
+        let repMsg = `your time zone has been set to ${args[1]}.`;
+        if (/^(P|E)ST$/i.test(args[1])) {
+          repMsg += `\nNote: To account for daylight savings day, set your time zone to ${args[1][0]}DT.`;
+        }
+        msg.reply(repMsg);
+      }
     });
   },
 
@@ -215,7 +222,7 @@ module.exports = {
       return;
     } else if (args.length === 1) {
       // one argument case: display own time
-      var userZone = uZones[msg.author.tag] || null;
+      var userZone = uZones[msg.author.id] || null;
       if (!userZone) {
         msg.reply("you have not set a default time zone.");
       }
