@@ -35,10 +35,36 @@ module.exports = {
       return;
     }
 
+    // append 'am' if not specified
+    if(!args[1].match(/.*(am|pm)/i)) args[1] += 'AM';
     // ensure time given is valid
     if (!/^\d{1,2}:\d{2}(am|pm)$/i.test(args[1])) {
       printErr(msg, args[0]);
       return;
+    }
+
+    // special case: users are mentioned instead of zone
+    if (args[3].match(/^<@!?\d+>$/)) {
+      var at = msg.mentions;
+      if (at.users.size > 2) printErr(msg, args[0]);
+      var usr = args[2].match(/^<@!?\d>$/)? at.users.last(): at.users.first();
+      args[3] = uZones[usr.id] || null;
+      // case: user has not set time zone
+      if (!args[3]) {
+        msg.channel.send(`At least one specified user has not set a preferred time zone.`);
+        return;
+      }
+    }
+    if (args[2].match(/^<@!?\d+>$/)) {
+      var at = msg.mentions;
+      if (at.users.size > 2) printErr(msg, args[0]);
+      var usr = at.users.first();
+      args[2] = uZones[usr.id] || null;
+      // case: user has not set time zone
+      if (!args[2]) {
+        msg.channel.send(`At least one specified user has not set a preferred time zone.`);
+        return;
+      }
     }
 
     var time = args[1].split(":");
@@ -62,7 +88,7 @@ module.exports = {
     else if (!isPM && hour === 12) hour = 0;
 
     if (hour > 24 || minute >= 60 || (hour >= 24 && minute > 0)) {
-      printErr(msg), args[0];
+      printErr(msg, args[0]);
       return;
     }
 
