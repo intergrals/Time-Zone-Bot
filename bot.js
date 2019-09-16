@@ -21,7 +21,7 @@ help = msg => {
   - converts a time from zone to your preferred time zone\n\
   **!to {zone} [time [±day]]**\n\
   - converts a time from your preferred time zone to zone\n\
-  **!convert {time} {zone} {new zone} [±day]**\n\
+  **!convert {zone} {new zone} {time} [±day]**\n\
   - converts a time from zone to new zone\n\
   - uses date of first time zone provided\n\
   - date can be incremented by specifying a number\n\

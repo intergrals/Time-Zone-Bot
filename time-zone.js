@@ -9,7 +9,7 @@ printErr = (msg, cmd) => {
   switch (cmd) {
     case "convert":
       usage +=
-        "**!convert {time} {zone} {new zone} [±day]**. \nFor a list of supported time zones, enter **!zones**.";
+        "**!convert {zone} {new zone} {time} [±day]**. \nFor a list of supported time zones, enter **!zones**.";
       break;
     case "from":
       usage +=
@@ -27,7 +27,7 @@ printErr = (msg, cmd) => {
 };
 
 module.exports = {
-  // !convert {time} {zone} {zone} [±day]
+  // !convert {zone} {zone} {time} [±day]
   convert: function(msg, args) {
     // wrong arguments
     if (args.length < 4) {
@@ -36,44 +36,50 @@ module.exports = {
     }
 
     // append 'am' if not specified
-    if(!args[1].match(/.*(am|pm)/i)) args[1] += 'AM';
+    if (!args[3].match(/.*(am|pm)/i)) args[3] += "AM";
     // ensure time given is valid
-    if (!/^\d{1,2}:\d{2}(am|pm)$/i.test(args[1])) {
+    if (!/^\d{1,2}:\d{2}(am|pm)$/i.test(args[3])) {
       printErr(msg, args[0]);
       return;
     }
 
     // special case: users are mentioned instead of zone
-    if (args[3].match(/^<@!?\d+>$/)) {
-      var at = msg.mentions;
-      if (at.users.size > 2) printErr(msg, args[0]);
-      var usr = args[2].match(/^<@!?\d>$/)? at.users.last(): at.users.first();
-      args[3] = uZones[usr.id] || null;
-      // case: user has not set time zone
-      if (!args[3]) {
-        msg.channel.send(`At least one specified user has not set a preferred time zone.`);
-        return;
-      }
-    }
     if (args[2].match(/^<@!?\d+>$/)) {
       var at = msg.mentions;
       if (at.users.size > 2) printErr(msg, args[0]);
-      var usr = at.users.first();
+      var usr = args[1].match(/^<@!?\d+>$/)
+        ? at.users.last()
+        : at.users.first();
       args[2] = uZones[usr.id] || null;
       // case: user has not set time zone
       if (!args[2]) {
-        msg.channel.send(`At least one specified user has not set a preferred time zone.`);
+        msg.channel.send(
+          `At least one specified user has not set a preferred time zone.`
+        );
+        return;
+      }
+    }
+    if (args[1].match(/^<@!?\d+>$/)) {
+      var at = msg.mentions;
+      if (at.users.size > 2) printErr(msg, args[0]);
+      var usr = at.users.first();
+      args[1] = uZones[usr.id] || null;
+      // case: user has not set time zone
+      if (!args[1]) {
+        msg.channel.send(
+          `At least one specified user has not set a preferred time zone.`
+        );
         return;
       }
     }
 
-    var time = args[1].split(":");
+    var time = args[3].split(":");
 
+    args[1] = args[1].toUpperCase();
     args[2] = args[2].toUpperCase();
-    args[3] = args[3].toUpperCase();
 
     // if time zones don't exist (or aren't supported)
-    if (!zones.hasOwnProperty(args[2]) || !zones.hasOwnProperty(args[3])) {
+    if (!zones.hasOwnProperty(args[1]) || !zones.hasOwnProperty(args[2])) {
       printErr(msg, args[0]);
       return;
     }
@@ -111,19 +117,20 @@ module.exports = {
 
     var date = moment()
       .add(addDay, "days")
-      .tz(zones[args[2]].region);
+      .tz(zones[args[1]].region);
     date.set({ hour: hour, minute: minute });
 
-    var date2 = date.clone().tz(zones[args[3]].region);
+    var date2 = date.clone().tz(zones[args[2]].region);
 
     msg.channel.send(
-      `${date.format("MMM Do | hh:mmA")} ${args[2]} = \n${date2.format(
+      `${date.format("MMM Do | hh:mmA")} ${args[1]} = \n${date2.format(
         "MMM Do | hh:mmA"
-      )} ${args[3]}`
+      )} ${args[2]}`
     );
   },
 
   // convert from given time zone to user's default
+  // !from {zone} {time}
   convertFrom: function(msg, args) {
     // error case: user has not set default time zone
     if (!uZones.hasOwnProperty(msg.author.id)) {
@@ -149,7 +156,7 @@ module.exports = {
     }
 
     // create args to send to convert
-    newArgs = [args[0], args[2], args[1], uZones[msg.author.id]];
+    newArgs = [args[0], args[1], uZones[msg.author.id], args[2]];
     if (args.length === 4) {
       newArgs.push(args[3]);
     }
@@ -157,6 +164,7 @@ module.exports = {
   },
 
   // convert from user's default time zone to zone given
+  // !to {zone} {time}
   convertTo: function(msg, args) {
     // error case: user has not set default time zone
     if (!uZones.hasOwnProperty(msg.author.id)) {
@@ -183,7 +191,7 @@ module.exports = {
     }
 
     // create args to send to convert
-    newArgs = [args[0], args[2], uZones[msg.author.id], args[1]];
+    newArgs = [args[0], uZones[msg.author.id], args[1], args[2]];
     if (args.length === 4) {
       newArgs.push(args[3]);
     }
@@ -233,7 +241,9 @@ module.exports = {
       } else {
         let repMsg = `your time zone has been set to ${args[1]}.`;
         if (/^(P|E)ST$/i.test(args[1])) {
-          repMsg += `\nNote: To account for daylight savings day, set your time zone to ${args[1][0]}DT.`;
+          repMsg += `\nNote: To account for daylight savings day, set your time zone to ${
+            args[1][0]
+          }DT.`;
         }
         msg.reply(repMsg);
       }
