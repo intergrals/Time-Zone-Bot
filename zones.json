@@ -55,9 +55,13 @@
     "offset": "-8",
     "region": "Pacific/Pitcairn"
   },
+  "CDT": {
+    "offset": "-6",
+    "region": "America/Resolute"
+  },
   "CST": {
     "offset": "-6",
-    "region": "Canada/Central"
+    "region": "America/Guatemala"
   },
   "EDT": {
     "offset": "-5",
@@ -73,6 +77,10 @@
   },
   "MST": {
     "offset": "-7",
-    "region": "America/Boise"
+    "region": "right/MST"
+  },
+  "MDT": {
+    "offset": "-7",
+    "region": "Canada/Mountain"
   }
 }

@@ -139,13 +139,26 @@ module.exports = {
     }
     // convert current time is one isn't specified
     if (args.length === 2) {
-      var time = moment().tz(zones[args[1].toUpperCase()].region);
+      var time = moment();
+      if (msg.mentions.users.size !== 0) {
+        if (msg.mentions.everyone) {
+          msg.channel.send("No.");
+          return;
+        } else if (!uZones.hasOwnProperty(msg.mentions.users.first().id)) {
+          msg.channel.send(
+            "At least one specified user has not set a preferred time zone."
+          );
+          return;
+        }
+        time = moment().tz(zones[uZones[msg.mentions.users.first().id]].region);
+      }
       newArgs = [
         args[0],
-        time.format("hh:mmA"),
         args[1],
-        uZones[msg.author.id]
+        uZones[msg.author.id],
+        time.format("hh:mmA")
       ];
+
       this.convert(msg, newArgs);
       return;
     }
@@ -177,10 +190,11 @@ module.exports = {
       var time = moment().tz(zones[uZones[msg.author.id]].region);
       newArgs = [
         args[0],
-        time.format("hh:mmA"),
         uZones[msg.author.id],
-        args[1]
+        args[1],
+        time.format("hh:mmA")
       ];
+      console.log(newArgs);
       this.convert(msg, newArgs);
       return;
     }
@@ -240,8 +254,8 @@ module.exports = {
         console.log(err);
       } else {
         let repMsg = `your time zone has been set to ${args[1]}.`;
-        if (/^(P|E)ST$/i.test(args[1])) {
-          repMsg += `\nNote: To account for daylight savings day, set your time zone to ${
+        if (/^[CEMP]ST$/i.test(args[1])) {
+          repMsg += `\n**Note:** This time zone does not factor in Daylight Savings Day. For the equivalent time zone with DST, set your time zone to ${
             args[1][0]
           }DT.`;
         }
@@ -279,6 +293,7 @@ module.exports = {
       }
       if (at.everyone) {
         msg.channel.send("No.");
+        return;
       }
       var user = at.users.first();
 
