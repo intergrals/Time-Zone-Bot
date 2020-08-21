@@ -212,21 +212,30 @@ module.exports = {
     this.convert(msg, newArgs);
   },
 
+  // gets a user's time zone
+  getZone: function(msg) {
+    if (uZones.hasOwnProperty(msg.author.id)) {
+      return uZones[msg.author.id];
+    } else {
+      return "";
+    }
+  },
+
   // sets a user's default time zone
   setZone: function(msg, args) {
     // no argument case: return user's time zone
     if (args.length === 1) {
-      if (uZones.hasOwnProperty(msg.author.id)) {
+      zone = this.getZone(msg);
+      if (zone) {
         var time = moment().tz(zones[uZones[msg.author.id]].region);
         msg.reply(
-          `your default time zone is ${
-            uZones[msg.author.id]
-          }. \nIt is currently ${time.format("hh:mmA")}.`
+          `your default time zone is ${zone}. \nIt is currently ${time.format(
+            "hh:mmA"
+          )}.`
         );
       } else {
         msg.reply("you have not set a default time zone.");
       }
-      return;
     }
     // error case: return error message
     if (args.length !== 2) {
@@ -239,9 +248,7 @@ module.exports = {
     // no time zone case: display message.
     if (!zones.hasOwnProperty(args[1])) {
       msg.channel.send(
-        `Time zone \"${
-          args[1]
-        }\" not supported. \nFor a list of supported time zones, enter **!zones**.`
+        `Time zone \"${args[1]}\" not supported. \nFor a list of supported time zones, enter **!zones**.`
       );
       return;
     }
@@ -255,9 +262,7 @@ module.exports = {
       } else {
         let repMsg = `your time zone has been set to ${args[1]}.`;
         if (/^[CEMP]ST$/i.test(args[1])) {
-          repMsg += `\n**Note:** This time zone does not factor in Daylight Savings Day. For the equivalent time zone with DST, set your time zone to ${
-            args[1][0]
-          }DT.`;
+          repMsg += `\n**Note:** This time zone does not factor in Daylight Savings Day. For the equivalent time zone with DST, set your time zone to ${args[1][0]}DT.`;
         }
         msg.reply(repMsg);
       }
