@@ -1,4 +1,5 @@
 const tt = require("./time-zone");
+const alarm = require("./alarm");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const auth = require("./auth.json");
@@ -9,13 +10,13 @@ client.on("ready", () => {
 
 help = msg => {
   msg.channel.send(
-    "Available commands:\n\
+    'Available commands:\n\
   **!zones**\n\
   - lists all supported time zones\n\
   **!myzone [zone]**\n\
   - sets your preferred time zone\n\
   **!time [user/zone]**\n\
-  - displays the current time in the specified user's preferred time zone\n\
+  - displays the current time in the specified user\'s preferred time zone\n\
   - can also input time zone directly to display time in given time zone\n\
   **!from {zone} [time [±day]]**\n\
   - converts a time from zone to your preferred time zone\n\
@@ -25,8 +26,12 @@ help = msg => {
   - converts a time from zone to new zone\n\
   - uses date of first time zone provided\n\
   - date can be incremented by specifying a number\n\
-  **!gbftime**\n\
-  - displays the current time in Granblue Fantasy"
+  **!setalarm {datetime} "{message}"**\n\
+  - sets an alarm for the specified time in your time zone\n\
+  - date formats:\n\
+    - YYYY-MM-DD h:mm\n\
+    - Month day year h:mm\n\
+  - remember to put message in quotes'
   );
 };
 
@@ -60,6 +65,8 @@ client.on("message", msg => {
       case "gbftime":
         tt.printTime(msg, "JST");
         break;
+      case "setalarm":
+        alarm.setAlarm(msg, args);
     }
   }
 });
